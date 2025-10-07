@@ -92,7 +92,7 @@ async def generate_menu_metrics_summary(data: list[dict]) -> list[dict]:
     return summary_list
 
 
-@mcp.resource("sql://Database schema")
+@mcp.resource("resource://Database schema")
 def sql_prompt():
     """Provide a prompt describing the DB schema and SQL generation instructions."""
     schema_description = """
