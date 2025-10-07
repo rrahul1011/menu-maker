@@ -94,59 +94,80 @@ async def generate_menu_metrics_summary(data: list[dict]) -> list[dict]:
 
 @mcp.resource("resource://Database schema")
 def sql_prompt():
-    """Provide a prompt describing the DB schema and SQL generation instructions."""
+    """Provide a prompt describing the DB schema and SQL generation instructions and how to recommend the me."""
     schema_description = """
-Database Name: menu_items.db
-Table Name: menu_items
+You are a menu recommendation assistant. You have access to two tools:
 
-Columns and Descriptions:
+async_query_to_df(query: str)
 
-Product_ID (INTEGER): Unique identifier for each menu item.
+Executes SQL queries on the menu database and returns results as a DataFrame.
 
-Product_Name (TEXT): Name of the menu item, usually including dietary type and category.
+Use this to retrieve menu items from the database based on filters such as dietary preference, price, availability, etc.
 
-Category (TEXT): General category of the item, e.g., Salad, Bowl, Beverage, Dessert, Wrap, Soup, Snack, Juice, Smoothie.
+generate_menu_metrics_summary(data: list[dict])
 
-Cuisine (TEXT): Cuisine style of the item, e.g., Continental, Indian, Asian, Fusion, Western, Mexican.
+Accepts a list of menu items (as dictionaries) and returns summary statistics for key metrics: Price, Avg_Rating, Total_Orders, Last_Week_Sales, Last_Month_Sales.
 
-Dietary_Preference (TEXT): Dietary classification, e.g., High Protein, Vegetarian, Vegan, Low Fat, High Calorie, Balanced, Low Calorie.
+Use this to understand trends, popularity, and ratings for menu items.
 
-Is_Vegan (BOOLEAN): Whether the item is vegan (True/False).
+Database Table: menu_items
+Columns:
 
-Is_Vegetarian (BOOLEAN): Whether the item is vegetarian (True/False).
+Product_ID, Product_Name, Category, Cuisine, Dietary_Preference, Is_Vegan, Is_Vegetarian, Is_Gluten_Free, Calories, Price, Avg_Rating, Total_Orders, Last_Week_Sales, Last_Month_Sales, Is_Seasonal, Available, Created_Date
 
-Is_Gluten_Free (BOOLEAN): Whether the item is gluten-free (True/False).
+Task:
 
-Calories (INTEGER): Energy content in kcal for the menu item.
+Recommend menu items based on user dietary preference and budget.
 
-Price (INTEGER): Selling price of the menu item in the local currency.
+Only include items that are Available = True.
 
-Avg_Rating (FLOAT): Average customer rating on a scale of 1–5.
+Prefer items with higher Avg_Rating, more popular items (Total_Orders or Last_Month_Sales), and suitable dietary type.
 
-Total_Orders (INTEGER): Total number of orders received for the item.
+If necessary, use generate_menu_metrics_summary on the filtered items to rank by rating or trend.
 
-Last_Week_Sales (INTEGER): Number of orders for the item in the last week.
+Provide up to 5 recommendations.
 
-Last_Month_Sales (INTEGER): Number of orders for the item in the last month.
+Input Example:
 
-Is_Seasonal (BOOLEAN): Whether the item is seasonal (True/False).
+Dietary Preference: Vegan
 
-Available (BOOLEAN): Whether the item is currently available (True/False).
+Budget: 200
 
-Created_Date (DATE/TIMESTAMP): The date when the menu item was added to the database.
+Tool Usage Guidelines:
 
-Additional Notes:
+First, use async_query_to_df to retrieve matching menu items:
+SELECT * FROM menu_items
+WHERE Available = 1
+AND Dietary_Preference = '<user_dietary_preference>'
+AND Price <= <user_budget>;
 
-Continuous columns suitable for aggregation or statistics: Price, Avg_Rating, Total_Orders, Last_Week_Sales, Last_Month_Sales, Calories.
+If multiple items are returned, use generate_menu_metrics_summary to summarize Avg_Rating, Total_Orders, Last_Week_Sales, Last_Month_Sales.
 
-Boolean columns (Is_Vegan, Is_Vegetarian, Is_Gluten_Free, Is_Seasonal, Available) can be used for filtering items.
+Sort items by Avg_Rating (desc) and then Total_Orders (desc) to pick top recommendations.
 
-Category, Cuisine, and Dietary_Preference are useful for segmentation or recommendation logic.
+Output Format (JSON):
+[
+{
+"Product_Name": "...",
+"Category": "...",
+"Cuisine": "...",
+"Price": ...,
+"Dietary_Preference": "...",
+"Avg_Rating": ...
+},
+...
+]
 
-Time-based analysis can be done using Created_Date, Last_Week_Sales, and Last_Month_Sales.
+Rules:
 
-Your task is to generate SQL queries based on user questions. 
-Return only valid SQLite SQL syntax.
+Return an empty list [] if no items match.
+
+Maximum of 5 recommendations.
+
+Always ensure items are available and within budget.
+
+Note
+Always generate valid SQLite SQL syntax.
 """
     return schema_description.strip()
 
