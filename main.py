@@ -167,7 +167,7 @@ Maximum of 5 recommendations.
 Always ensure items are available and within budget.
 
 Note
-Always generate valid SQLite SQL syntax.
+Always generate valid SQLite SQL syntax...
 """
     return schema_description.strip()
 
